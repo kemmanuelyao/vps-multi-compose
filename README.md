@@ -19,17 +19,41 @@ Internet :80/:443 → Traefik (gateway) → per-stack Nginx → stack services
 
 ```
 gateway/
-  docker-compose.yml    # Traefik reverse proxy
-  .env                  # ACME_EMAIL for Let's Encrypt
-  letsencrypt/          # ACME cert storage (gitignored)
+  docker-compose.yml            # Traefik reverse proxy
+  .env                          # ACME_EMAIL for Let's Encrypt
+  letsencrypt/                  # ACME cert storage (gitignored)
 apps/
-  sample-app/           # Example application stack
-    docker-compose.yml  # proxy + frontend + backend
-    .env                # COMPOSE_PROJECT_NAME + APP_DOMAIN
-    proxy/nginx.conf    # Internal path routing
-    frontend/           # Static frontend files
-_template/              # Starter template for new apps
+  sample-app-nginx/                   # Nginx proxy approach (better isolation)
+    docker-compose.yml          # proxy + frontend + backend
+    proxy/nginx.conf            # Internal path routing
+    frontend/                   # Static frontend files
+  sample-app-traefik/           # Traefik-only approach (simpler, less isolation)
+    docker-compose.yml          # frontend + backend (no proxy service)
+    frontend/                   # Static frontend files
+_template/                      # Starter template for new apps
 ```
+
+## Two Routing Approaches
+
+### 1. Nginx proxy per stack (`sample-app`)
+
+```
+Traefik → stack Nginx proxy → frontend / backend
+```
+
+- Only the Nginx proxy joins the `gateway` network; services stay on `internal`
+- Full network isolation between stacks
+- Path routing configured in `nginx.conf`
+
+### 2. Traefik-only routing (`sample-app-traefik`)
+
+```
+Traefik → frontend / backend (directly)
+```
+
+- Every service joins the `gateway` network
+- No per-stack proxy — path routing handled by Traefik labels
+- Simpler setup, fewer containers, but less network isolation
 
 ## Networking
 
