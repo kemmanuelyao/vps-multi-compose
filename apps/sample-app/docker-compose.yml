@@ -1,0 +1,38 @@
+services:
+  proxy:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=80"
+    networks:
+      - gateway
+      - internal
+    depends_on:
+      - frontend
+      - backend
+
+  frontend:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./frontend/index.html:/usr/share/nginx/html/index.html:ro
+    networks:
+      - internal
+
+  backend:
+    image: hashicorp/http-echo
+    restart: unless-stopped
+    command: ["-text", "Hello from backend!", "-listen", ":5678"]
+    networks:
+      - internal
+
+networks:
+  gateway:
+    external: true
+  internal:

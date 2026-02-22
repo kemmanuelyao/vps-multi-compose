@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample App</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        #response { margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Sample App</h1>
+    <p>Frontend is working. Fetching backend response...</p>
+    <div id="response">Loading...</div>
+    <script>
+        fetch('/api/')
+            .then(r => r.text())
+            .then(text => document.getElementById('response').textContent = 'Backend says: ' + text.trim())
+            .catch(err => document.getElementById('response').textContent = 'Error: ' + err.message);
+    </script>
+</body>
+</html>

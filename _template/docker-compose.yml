@@ -1,0 +1,40 @@
+services:
+  proxy:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=80"
+    networks:
+      - gateway
+      - internal
+    depends_on:
+      - frontend
+      - backend
+
+  # TODO: Replace with your frontend service
+  frontend:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    networks:
+      - internal
+
+  # TODO: Replace with your backend service
+  backend:
+    image: node:alpine
+    restart: unless-stopped
+    # TODO: Add your backend command and volumes
+    networks:
+      - internal
+
+networks:
+  gateway:
+    external: true
+  internal:
